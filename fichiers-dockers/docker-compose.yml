@@ -1,0 +1,59 @@
+version: '2'
+
+services:
+
+  my_db_mysql:
+    image: mysql
+    container_name: my_db_mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    volumes:
+      - mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root-password
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=userdb
+      - MYSQL_PASSWORD=password
+    networks:
+      - my-net
+
+
+  wordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: my_db_mysql
+      WORDPRESS_DB_USER: userdb
+      WORDPRESS_DB_PASSWORD: password
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress:/var/www/html
+    depends_on:
+      - my_db_mysql
+    networks:
+      - my-net
+
+  phpadmin:
+    image: phpmyadmin
+    container_name: phpadmin
+    restart: always
+    links:
+      - my_db_mysql:db 
+    ports:
+      - 8090:80
+    networks:
+      - my-net
+    depends_on:
+      - my_db_mysql
+
+
+networks:
+  my-net:
+    external: true
+
+volumes:
+  mysql:
+    external: true
+  wordpress:
